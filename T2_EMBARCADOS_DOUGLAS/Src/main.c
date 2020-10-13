@@ -178,6 +178,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		
+	lcd_GOTO(0,0);
+	lcd_STRING("testetetstetsa");
+		
   }
   /* USER CODE END 3 */
 }
