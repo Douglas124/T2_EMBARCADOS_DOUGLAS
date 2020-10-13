@@ -1,0 +1,24 @@
+--cpu Cortex-M3
+"t2_embarcados_douglas\startup_stm32f103x6.o"
+"t2_embarcados_douglas\main.o"
+"t2_embarcados_douglas\gpio.o"
+"t2_embarcados_douglas\stm32f1xx_it.o"
+"t2_embarcados_douglas\stm32f1xx_hal_msp.o"
+"t2_embarcados_douglas\stm32f1xx_hal_gpio_ex.o"
+"t2_embarcados_douglas\stm32f1xx_hal_tim.o"
+"t2_embarcados_douglas\stm32f1xx_hal_tim_ex.o"
+"t2_embarcados_douglas\stm32f1xx_hal.o"
+"t2_embarcados_douglas\stm32f1xx_hal_rcc.o"
+"t2_embarcados_douglas\stm32f1xx_hal_rcc_ex.o"
+"t2_embarcados_douglas\stm32f1xx_hal_gpio.o"
+"t2_embarcados_douglas\stm32f1xx_hal_dma.o"
+"t2_embarcados_douglas\stm32f1xx_hal_cortex.o"
+"t2_embarcados_douglas\stm32f1xx_hal_pwr.o"
+"t2_embarcados_douglas\stm32f1xx_hal_flash.o"
+"t2_embarcados_douglas\stm32f1xx_hal_flash_ex.o"
+"t2_embarcados_douglas\stm32f1xx_hal_exti.o"
+"t2_embarcados_douglas\system_stm32f1xx.o"
+--library_type=microlib --strict --scatter "T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "T2_EMBARCADOS_DOUGLAS.map" -o T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf
