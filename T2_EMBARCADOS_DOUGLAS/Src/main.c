@@ -21,8 +21,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "gpio.h"
-//#include "adc.h"
-//#include "rtc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -42,6 +40,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+
+short AC1, AC2, AC3, B1, B2, MB, MC, MD;
+unsigned short AC4, AC5, AC6;
+long X1, X2, B5, T, UT;
 
 /* USER CODE END PTD */
 
@@ -134,7 +136,467 @@ void SystemClock_Config(void);
 			}
 		}
 	}
+	
+//--------------------------------------------------- START I2C PADRAO
+	void start_i2c(void){
+SDA1;
+HAL_Delay(1);//1 milisegundo
+SCL1;
+HAL_Delay(1);//1 milisegundo
+SDA0;
+HAL_Delay(1);//1 milisegundo
+SCL0;
+HAL_Delay(1);//1 milisegundo
+}
+//--------------------------------------------------- STOP I2C PADRAO
+	void stop_i2c(void) {
+SDA0;
+HAL_Delay(1);//1 milisegundo
+SCL0;
+HAL_Delay(1);//1 milisegundo
+SCL1;
+HAL_Delay(1);//1 milisegundo
+SDA1;
+HAL_Delay(1);//1 milisegundo
+}
 
+//--------------------------------------------------- Envia 1 pelo I2C
+	void envia_1_i2c(void){
+SDA1;
+HAL_Delay(1);//1 milisegundo
+SCL1;
+HAL_Delay(1);//1 milisegundo
+SCL0;
+HAL_Delay(1);//1 milisegundo
+}
+
+//--------------------------------------------------- Envia 0 pelo I2C
+	void envia_0_i2c(void){
+SDA0;
+HAL_Delay(1);//1 milisegundo
+SCL1;
+HAL_Delay(1);//1 milisegundo
+SCL0;
+HAL_Delay(1);//1 milisegundo
+}
+
+//--------------------------------------------------- ACK i2c
+	int ack_i2c(void){
+int x;																// muda a config do pino de saida para entrada para poder ler o ack depois muda para sada de novo
+GPIO_InitTypeDef GPIO_InitStruct;
+GPIO_InitStruct.Pin = GPIO_PIN_10; // SDA => PA.10
+GPIO_InitStruct.Mode = GPIO_MODE_INPUT; //FAZ SDA COMO ENTRADA
+GPIO_InitStruct.Pull = GPIO_PULLUP;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+SCL1;
+HAL_Delay(1);//1 milisegundo
+x = HAL_GPIO_ReadPin(GPIOA,SDA); //L^E O PINO
+SCL0;
+HAL_Delay(1);//1 milisegundo
+GPIO_InitStruct.Pin = GPIO_PIN_10; // SDA => PA.10
+GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP; //FAZ SDA COMO SA´IDA
+GPIO_InitStruct.Pull = GPIO_PULLUP;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+return x; //se 0 ok, se 1 erro
+}
+
+//--------------------------------------------------- LE UM BYTE
+	int8_t le_byte(void){
+	uint8_t x=0;																// muda a config do pino de saida para entrada para poder ler o ack depois muda para sada de novo
+	GPIO_InitTypeDef GPIO_InitStruct;
+	GPIO_InitStruct.Pin = GPIO_PIN_10; // SDA => PA.10
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT; //FAZ SDA COMO ENTRADA
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	
+	for (int i=0; i<8; i++){
+	SCL1;
+	HAL_Delay(1);//1 milisegundo
+	x = x<<1;
+	x |= HAL_GPIO_ReadPin(GPIOA,SDA); //L^E O PINO
+	SCL0;
+	HAL_Delay(1);//1 milisegundo
+	}
+	
+
+	GPIO_InitStruct.Pin = GPIO_PIN_10; // SDA => PA.10
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP; //FAZ SDA COMO SA´IDA
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	return x; 
+
+}
+	
+//--------------------------------------------------- ENVIA UM BYTE
+	void envia_byte(uint8_t dado){
+		if ((dado & 0x80)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x40)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x20)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x10)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x08)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x04)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x02)==0) envia_0_i2c();
+			else envia_1_i2c();
+		if ((dado & 0x01)==0) envia_0_i2c();
+			else envia_1_i2c();
+	}
+//--------------------------------------------------- CALIBRA SENSOR BMP180
+	void le_calib_bmp180(void){
+		uint8_t dado1, dado2;
+	
+//----------------------------- AC1		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xAA);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xAB);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		AC1 = (dado1 << 8) + dado2;
+			
+
+//----------------------------- AC2	
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xAC);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xAD);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		AC2 = (dado1 << 8) + dado2;
+			
+//----------------------------- AC3	
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xAE);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xAF);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		AC3 = (dado1 << 8) + dado2;
+			
+
+//----------------------------- AC4	
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB0);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB1);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		AC4 = (dado1 << 8) + dado2;
+				
+//----------------------------- AC5		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB2);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB3);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		AC5 = (dado1 << 8) + dado2;
+			
+
+//----------------------------- AC6	
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB4);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB5);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		AC6 = (dado1 << 8) + dado2;
+			
+//----------------------------- B1	
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB6);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB7);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		B1 = (dado1 << 8) + dado2;
+			
+
+//----------------------------- B2
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB8);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xB9);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		B2 = (dado1 << 8) + dado2;
+			
+//----------------------------- MB	
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xBA);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xBB);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		MB = (dado1 << 8) + dado2;
+			
+
+//----------------------------- MC
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xBC);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xBD);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		MC = (dado1 << 8) + dado2;
+			
+//----------------------------- MD
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xBE);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado1 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		start_i2c ();
+		envia_byte(0xEE);
+		ack_i2c();
+		envia_byte(0xBF);
+		ack_i2c();
+		start_i2c();
+		envia_byte(0xEF);	
+		ack_i2c();
+		dado2 = le_byte();
+		envia_1_i2c();
+		stop_i2c();
+		
+		MD = (dado1 << 8) + dado2;
+
+	}
+	
+//--------------------------------------------------- LE TEMPERATURA SENSOR BMP180	
+long le_temp_bmp180(void){
+	uint8_t dado1, dado2;
+	
+	start_i2c();
+	envia_byte(0xEE);
+	ack_i2c();
+	envia_byte(0xF4);
+	ack_i2c();
+	envia_byte(0x2E);
+	ack_i2c();
+	stop_i2c();
+	HAL_Delay(5);
+	
+	start_i2c(); 
+	envia_byte(0xEE);
+	ack_i2c();
+	envia_byte(0xF6);
+	ack_i2c();
+	start_i2c();
+	envia_byte(0xEF);
+	ack_i2c();
+	dado1 = le_byte();
+	envia_0_i2c();
+	dado2 = le_byte();
+	envia_1_i2c();
+	stop_i2c();
+	
+	UT = (dado1 << 8) + dado2;
+	X1 = (UT - AC6)*AC5/32768;
+	X2 = MC*2048/(X1+MD);
+	B5 = X1 + X2;
+	T = (B5+8)/16;
+	
+	return T/10;
+}	
+
+	
 /* USER CODE END 0 */
 
 /**
@@ -144,6 +606,8 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	char vetor[30];
+	
 
   /* USER CODE END 1 */
 
@@ -167,6 +631,7 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 	
+		le_calib_bmp180();
 		lcd_init();
 
   /* USER CODE END 2 */
@@ -178,9 +643,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		
-	lcd_GOTO(0,0);
-	lcd_STRING("testetetstetsa");
+		lcd_GOTO(2,0);
+		sprintf(vetor, "T=%ld", le_temp_bmp180());
+
+		lcd_STRING(vetor);
 		
   }
   /* USER CODE END 3 */

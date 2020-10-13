@@ -28,21 +28,21 @@ Project File Date:  10/13/2020
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'E:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'T2_EMBARCADOS_DOUGLAS'
 compiling main.c...
-../Src/main.c(74): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(76): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, RS_Pin,0);  //RS em zero para mandar comando
-../Src/main.c(78): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
 ../Src/main.c(80): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
-../Src/main.c(97): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOA, RS_Pin,1);  //RS em zero para mandar dados
-../Src/main.c(101): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
+../Src/main.c(82): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
+../Src/main.c(99): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOA, RS_Pin,1);  //RS em zero para mandar dados
 ../Src/main.c(103): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
+../Src/main.c(105): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
 ../Src/main.c: 6 warnings, 0 errors
 linking...
-Program Size: Code=2704 RO-data=284 RW-data=16 ZI-data=1024  
+Program Size: Code=5452 RO-data=284 RW-data=60 ZI-data=1028  
 FromELF: creating hex file...
 "T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 6 Warning(s).
 
@@ -67,7 +67,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Build Time Elapsed:  00:00:05
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>
