@@ -43,7 +43,7 @@
 
 short AC1, AC2, AC3, B1, B2, MB, MC, MD;
 unsigned short AC4, AC5, AC6;
-long X1, X2, B5, T, UT;
+long X1, X2, B5, T, UT, UP, B6P, X1P, X2P, X3P, B3P, B4P, B7P, pressao;
 
 /* USER CODE END PTD */
 
@@ -593,7 +593,59 @@ long le_temp_bmp180(void){
 	B5 = X1 + X2;
 	T = (B5+8)/16;
 	
-	return T/10;
+	return T;
+}	
+
+//--------------------------------------------------- LE PRESSAO SENSOR BMP180	
+long le_press_bmp180(void){
+	uint8_t dado1, dado2, dado3;
+	
+	start_i2c();
+	envia_byte(0xEE);
+	ack_i2c();
+	envia_byte(0xF4);
+	ack_i2c();
+	envia_byte(0x34 +(0<<6));
+	ack_i2c();
+	stop_i2c();
+	HAL_Delay(5);
+	
+	start_i2c(); 
+	envia_byte(0xEE);
+	ack_i2c();
+	envia_byte(0xF6);
+	ack_i2c();
+	start_i2c();
+	envia_byte(0xEF);
+	ack_i2c();
+	dado1 = le_byte();
+	envia_0_i2c();
+	dado2 = le_byte();
+	envia_0_i2c();
+	dado3 = le_byte();
+	envia_1_i2c();
+	stop_i2c();
+	
+	UP = ((dado1 << 16) + (dado2<<8) + dado3)>>8;
+	B6P = B5 - 4000;
+	X1P = (B2*(B6P*B6P/4096))/2048;
+	X2P = AC2*B6P/2048;
+	X3P = X1P + X2;
+	B3P = (((AC1*4+X3P)<<0)+2)/4;
+	X1P = AC3* B6P/8192;
+	X2P = (B1*(B6P*B6P/4096))/65536;
+	X3P = ((X1P + X2P)+2)/4;
+	B4P = AC4 * (unsigned long)(X3P+32768)/32768;
+	B7P = ((unsigned long)UP-B3P)*(50000>>0);
+	if (B7P < 0x80000000) pressao = (B7P*2)/B4P;
+		else pressao = (B7P/B4P)*2;
+	X1P = (pressao/256)*(pressao/256);
+	X1P = (X1P*3038)/65536;
+	X2P = (-7357*pressao)/65536;
+	pressao = pressao + (X1P + X2P + 3791)/16;
+	
+	
+	return pressao;
 }	
 
 	
@@ -643,9 +695,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		//sprintf(vetor, "T=%ld    P= %ld", le_temp_bmp180(), le_press_bmp180());
+		sprintf(vetor, "T=%ld ", le_temp_bmp180());
 		lcd_GOTO(2,0);
-		sprintf(vetor, "T=%ld", le_temp_bmp180());
-
 		lcd_STRING(vetor);
 		
   }
