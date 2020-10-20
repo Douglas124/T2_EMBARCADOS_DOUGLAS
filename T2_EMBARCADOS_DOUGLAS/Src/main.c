@@ -20,6 +20,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -70,6 +72,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 
 //--------------------------------------------------- MANDA COMANDO PARA O LCD
 	void lcd_comando(uint8_t comando){
@@ -648,6 +651,46 @@ long le_press_bmp180(void){
 	return pressao;
 }	
 
+//--------------------------------------------------- LEITURA DO AD
+uint16_t le_AD(void){
+	uint16_t leitura_AD;
+		lcd_GOTO(0,5);
+	lcd_STRING("TESTE1");
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1,100);
+	leitura_AD = HAL_ADC_GetValue(&hadc1); 
+	HAL_ADC_Stop(&hadc1);
+	return leitura_AD;
+}
+
+//--------------------------------------------------- INTERRUPÇÂO PARA PWM
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	uint16_t leitura_AD = 0;
+	static int contador =0, pwm = 0;
+	leitura_AD = le_AD();
+	lcd_GOTO(1,5);
+	lcd_STRING("TESTE2");
+	contador ++;
+	if (leitura_AD <= 2035){
+	pwm = (leitura_AD*100)/2035;
+	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
+	}
+	else if (leitura_AD >= 2035){
+	pwm = ((leitura_AD - 2035)*100)/2035;
+	HAL_GPIO_WritePin(GPIOB, RL1_Pin,1);	
+	}
+	
+	if (contador <= pwm)	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
+	else 	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,0);	
+	if (contador >= 100) {
+	contador = 0;
+	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
+	}
+
+}
+
+
+
 	
 /* USER CODE END 0 */
 
@@ -681,9 +724,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM1_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 	
-		le_calib_bmp180();
+		HAL_TIM_Base_Start_IT(&htim1);
+		//le_calib_bmp180();
 		lcd_init();
 
   /* USER CODE END 2 */
@@ -695,11 +741,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		//sprintf(vetor, "T=%ld    P= %ld", le_temp_bmp180(), le_press_bmp180());
-		sprintf(vetor, "T=%ld ", le_temp_bmp180());
-		lcd_GOTO(2,0);
-		lcd_STRING(vetor);
-		
+//		sprintf(vetor, "T=%ld ", le_AD());
+//		lcd_GOTO(2,0);
+//		lcd_STRING(vetor);
+//		
   }
   /* USER CODE END 3 */
 }
@@ -712,6 +757,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the CPU, AHB and APB busses clocks 
   */
@@ -733,6 +779,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }

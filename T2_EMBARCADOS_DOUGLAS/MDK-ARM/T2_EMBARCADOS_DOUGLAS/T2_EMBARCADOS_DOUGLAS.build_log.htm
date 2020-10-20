@@ -22,29 +22,41 @@ Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
 C:\Users\dougl\Google Drive\Faculdade\GitHub\Embarcados\Trabalho 2 - Douglas P Rodrigues\T2_EMBARCADOS_DOUGLAS\MDK-ARM\T2_EMBARCADOS_DOUGLAS.uvprojx
-Project File Date:  10/13/2020
+Project File Date:  10/19/2020
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'E:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'T2_EMBARCADOS_DOUGLAS'
 compiling main.c...
-../Src/main.c(76): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(79): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, RS_Pin,0);  //RS em zero para mandar comando
-../Src/main.c(80): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(83): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
-../Src/main.c(82): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(85): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
-../Src/main.c(99): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(102): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, RS_Pin,1);  //RS em zero para mandar dados
-../Src/main.c(103): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(106): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
-../Src/main.c(105): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(108): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
-../Src/main.c: 6 warnings, 0 errors
+../Src/main.c(676): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
+../Src/main.c(680): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, RL1_Pin,1);	
+../Src/main.c(683): warning:  #188-D: enumerated type mixed with another type
+  	if (contador <= pwm)	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
+../Src/main.c(684): warning:  #188-D: enumerated type mixed with another type
+  	else 	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,0);	
+../Src/main.c(687): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
+../Src/main.c(704): warning:  #177-D: variable "vetor"  was declared but never referenced
+  	char vetor[30];
+../Src/main.c: 12 warnings, 0 errors
 linking...
-Program Size: Code=5452 RO-data=284 RW-data=96 ZI-data=1024  
+Program Size: Code=6156 RO-data=292 RW-data=104 ZI-data=1144  
 FromELF: creating hex file...
-"T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 6 Warning(s).
+"T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 12 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -67,7 +79,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:04
 </pre>
 </body>
 </html>

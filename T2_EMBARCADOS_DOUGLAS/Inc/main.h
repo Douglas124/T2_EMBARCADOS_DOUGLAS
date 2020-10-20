@@ -58,6 +58,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define PWM1_Pin GPIO_PIN_13
+#define PWM1_GPIO_Port GPIOB
+#define PWM2_Pin GPIO_PIN_14
+#define PWM2_GPIO_Port GPIOB
 #define EN_Pin GPIO_PIN_8
 #define EN_GPIO_Port GPIOA
 #define RS_Pin GPIO_PIN_9
@@ -66,6 +70,8 @@ void Error_Handler(void);
 #define SDA_GPIO_Port GPIOA
 #define SCL_Pin GPIO_PIN_11
 #define SCL_GPIO_Port GPIOA
+#define RL1_Pin GPIO_PIN_3
+#define RL1_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
