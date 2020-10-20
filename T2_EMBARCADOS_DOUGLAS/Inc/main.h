@@ -58,6 +58,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define MUX_A_Pin GPIO_PIN_1
+#define MUX_A_GPIO_Port GPIOB
+#define MUX_B_Pin GPIO_PIN_2
+#define MUX_B_GPIO_Port GPIOB
 #define PWM1_Pin GPIO_PIN_13
 #define PWM1_GPIO_Port GPIOB
 #define PWM2_Pin GPIO_PIN_14

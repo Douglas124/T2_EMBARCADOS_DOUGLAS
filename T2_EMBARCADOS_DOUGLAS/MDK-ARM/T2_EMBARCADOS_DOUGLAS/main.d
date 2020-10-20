@@ -34,3 +34,4 @@ t2_embarcados_douglas\main.o: ../Inc/tim.h
 t2_embarcados_douglas\main.o: ../Inc/gpio.h
 t2_embarcados_douglas\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 t2_embarcados_douglas\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+t2_embarcados_douglas\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

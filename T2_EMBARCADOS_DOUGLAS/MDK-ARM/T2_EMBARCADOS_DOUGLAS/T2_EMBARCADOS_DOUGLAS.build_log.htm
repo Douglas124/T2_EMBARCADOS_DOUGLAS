@@ -22,41 +22,83 @@ Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
 C:\Users\dougl\Google Drive\Faculdade\GitHub\Embarcados\Trabalho 2 - Douglas P Rodrigues\T2_EMBARCADOS_DOUGLAS\MDK-ARM\T2_EMBARCADOS_DOUGLAS.uvprojx
-Project File Date:  10/19/2020
+Project File Date:  10/20/2020
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'E:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'T2_EMBARCADOS_DOUGLAS'
+assembling startup_stm32f103x6.s...
+compiling gpio.c...
+compiling adc.c...
 compiling main.c...
-../Src/main.c(79): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(81): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, RS_Pin,0);  //RS em zero para mandar comando
-../Src/main.c(83): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
 ../Src/main.c(85): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
-../Src/main.c(102): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOA, RS_Pin,1);  //RS em zero para mandar dados
-../Src/main.c(106): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
-../Src/main.c(108): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(87): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
-../Src/main.c(676): warning:  #188-D: enumerated type mixed with another type
-  	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
+../Src/main.c(104): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOA, RS_Pin,1);  //RS em zero para mandar dados
+../Src/main.c(108): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOA, EN_Pin,1);			//en 1
+../Src/main.c(110): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOA, EN_Pin,0);			//en 0
+../Src/main.c(670): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
+../Src/main.c(671): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,0);
+../Src/main.c(679): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
 ../Src/main.c(680): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,1);
+../Src/main.c(688): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,1);
+../Src/main.c(689): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,0);
+../Src/main.c(699): warning:  #111-D: statement is unreachable
+  		break;
+../Src/main.c(702): warning:  #111-D: statement is unreachable
+  		break;
+../Src/main.c(705): warning:  #111-D: statement is unreachable
+  		break;
+../Src/main.c(707): warning:  #940-D: missing return statement at end of non-void function "le_AD" 
+  }
+../Src/main.c(719): warning:  #188-D: enumerated type mixed with another type
+  	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
+../Src/main.c(723): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOB, RL1_Pin,1);	
-../Src/main.c(683): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(726): warning:  #188-D: enumerated type mixed with another type
   	if (contador <= pwm)	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
-../Src/main.c(684): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(727): warning:  #188-D: enumerated type mixed with another type
   	else 	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,0);	
-../Src/main.c(687): warning:  #188-D: enumerated type mixed with another type
+../Src/main.c(730): warning:  #188-D: enumerated type mixed with another type
   	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
-../Src/main.c(704): warning:  #177-D: variable "vetor"  was declared but never referenced
+../Src/main.c(785): warning:  #177-D: variable "vetor"  was declared but never referenced
   	char vetor[30];
-../Src/main.c: 12 warnings, 0 errors
+../Src/main.c: 22 warnings, 0 errors
+compiling tim.c...
+compiling stm32f1xx_it.c...
+compiling stm32f1xx_hal_msp.c...
+compiling stm32f1xx_hal_gpio_ex.c...
+compiling stm32f1xx_hal_adc.c...
+compiling stm32f1xx_hal_adc_ex.c...
+compiling stm32f1xx_hal.c...
+compiling stm32f1xx_hal_rcc_ex.c...
+compiling stm32f1xx_hal_rcc.c...
+compiling stm32f1xx_hal_gpio.c...
+compiling stm32f1xx_hal_dma.c...
+compiling stm32f1xx_hal_cortex.c...
+compiling stm32f1xx_hal_pwr.c...
+compiling stm32f1xx_hal_flash.c...
+compiling stm32f1xx_hal_flash_ex.c...
+compiling stm32f1xx_hal_exti.c...
+compiling stm32f1xx_hal_tim_ex.c...
+compiling system_stm32f1xx.c...
+compiling stm32f1xx_hal_tim.c...
 linking...
-Program Size: Code=6156 RO-data=292 RW-data=104 ZI-data=1144  
+Program Size: Code=7128 RO-data=292 RW-data=108 ZI-data=1148  
 FromELF: creating hex file...
-"T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 12 Warning(s).
+"T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 22 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -79,7 +121,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Build Time Elapsed:  00:00:04
+Build Time Elapsed:  00:00:39
 </pre>
 </body>
 </html>

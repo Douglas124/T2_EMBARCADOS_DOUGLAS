@@ -29,6 +29,7 @@
 
 #include "string.h"
 #include "stdio.h"
+#include "math.h"
 
 #define SDA (1<<10) //PA.10 - PLACA stm32f103
 #define SCL (1<<11) //PA.11 - PLACA stm32f103
@@ -46,6 +47,8 @@
 short AC1, AC2, AC3, B1, B2, MB, MC, MD;
 unsigned short AC4, AC5, AC6;
 long X1, X2, B5, T, UT, UP, B6P, X1P, X2P, X3P, B3P, B4P, B7P, pressao;
+unsigned int quantidade_chuva=0, conta_tempo =0;
+float freq_anemometro=0 ;
 
 /* USER CODE END PTD */
 
@@ -650,27 +653,69 @@ long le_press_bmp180(void){
 	
 	return pressao;
 }	
+//--------------------------------------------------- CALCULO ALTITUDE
+float altitude(long pressao){
+	float altitude=0;
+	float aux1 = 1/5255; 
+	altitude = 44330 * (1-pow((pressao/1023.25), aux1));
+	return altitude;
+}
 
 //--------------------------------------------------- LEITURA DO AD
-uint16_t le_AD(void){
-	uint16_t leitura_AD;
-		lcd_GOTO(0,5);
+uint16_t le_AD(int escolha){
+	uint16_t pot_motor, vento, luminosidade;
+	lcd_GOTO(0,5);
 	lcd_STRING("TESTE1");
+
+//-------------------------------------- leitura vento	
+	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
+	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,0);
+	HAL_Delay(10);
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1,100);
-	leitura_AD = HAL_ADC_GetValue(&hadc1); 
+	vento = HAL_ADC_GetValue(&hadc1); 
 	HAL_ADC_Stop(&hadc1);
-	return leitura_AD;
+	
+//-------------------------------------- leitura luminosidade
+	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
+	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,1);
+	HAL_Delay(10);
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1,100);
+	luminosidade = HAL_ADC_GetValue(&hadc1); 
+	HAL_ADC_Stop(&hadc1);
+	
+//-------------------------------------- leitura pot motor
+	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,1);
+	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,0);
+	HAL_Delay(10);
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1,100);
+	pot_motor = HAL_ADC_GetValue(&hadc1); 
+	HAL_ADC_Stop(&hadc1);
+	
+  switch (escolha){
+		case 1:
+		return vento;
+		break;
+		case 2:
+		return luminosidade;
+		break;
+		case 3:
+		return pot_motor;
+		break;
+	}
 }
 
 //--------------------------------------------------- INTERRUPÇÂO PARA PWM
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	uint16_t leitura_AD = 0;
 	static int contador =0, pwm = 0;
-	leitura_AD = le_AD();
+	leitura_AD = le_AD(3);
 	lcd_GOTO(1,5);
 	lcd_STRING("TESTE2");
 	contador ++;
+	conta_tempo ++;
 	if (leitura_AD <= 2035){
 	pwm = (leitura_AD*100)/2035;
 	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
@@ -689,7 +734,60 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 }
 
+//--------------------------------------------------- LEITURA VENTO
+uint16_t dir_vento (void){
+	uint16_t vento;
+	int direcao=0; // N=1, NE=2, E=3, ES=4, S=5, SW=6, W=7, NW=8
+	vento = le_AD(1);
+	
+	if (vento<= 3554+50 && vento>=3554-50) direcao = 1;
+	else if (vento<= 2583+50 && vento>=2583-50) direcao = 2;
+	else if (vento<= 713+50 && vento>=713-50) direcao = 3;
+	else if (vento<= 1291+50 && vento>=1291-50) direcao = 4;
+	else if (vento<= 1845+50 && vento>=1845-50) direcao = 5;
+	else if (vento<= 3136+50 && vento>=3136-50) direcao = 6;
+	else if (vento<= 3911+50 && vento>=3911-50) direcao = 7;
+	else if (vento<= 3788+50 && vento>=3788-50) direcao = 8;
+	else direcao =0;
+	
+	return direcao;
+}
 
+//--------------------------------------------------- LEITURA LUMINOSIDADE
+uint16_t lumi_dia (void){
+	uint16_t luminosidade;
+	int estado_dia=0; // sol=1, parcialmente nublado=2, nublado=3, anoitecer=4, noite=5
+	luminosidade = le_AD(2);
+	
+	if (luminosidade>=4096-50) estado_dia = 1;
+	else if (luminosidade<= 2337+50 && luminosidade>=2337-50) estado_dia = 2;
+	else if (luminosidade<= 61+10 && luminosidade>=61-10) estado_dia = 3;
+	else if (luminosidade<= 8+5 && luminosidade>=8-5) estado_dia = 4;
+	else if (luminosidade<= 50) estado_dia = 5;
+	else luminosidade =0;
+	
+	return estado_dia;
+}
+
+//--------------------------------------------------- INTERRUPÇÃO SENSOR CHUVA
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	static int aux_contador =0, diferenca =0, aux=0;
+	if (GPIO_Pin == GPIO_PIN_12){
+	quantidade_chuva = quantidade_chuva + 0.1;
+	}
+	if (GPIO_Pin == GPIO_PIN_15){
+		if (aux == 0){
+		aux_contador = conta_tempo;
+		aux++;
+		}
+			else if (aux ==1){
+			diferenca = conta_tempo - aux_contador;
+			freq_anemometro = 1/(0.1*diferenca); 
+			aux = 0;
+			}
+	}
+	
+}
 
 	
 /* USER CODE END 0 */
