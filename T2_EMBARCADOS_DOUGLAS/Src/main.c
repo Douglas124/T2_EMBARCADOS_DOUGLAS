@@ -46,9 +46,9 @@
 
 short AC1, AC2, AC3, B1, B2, MB, MC, MD;
 unsigned short AC4, AC5, AC6;
-long X1, X2, B5, T, UT, UP, B6P, X1P, X2P, X3P, B3P, B4P, B7P, pressao;
-unsigned int quantidade_chuva=0, conta_tempo =0;
-float freq_anemometro=0 ;
+long X1, X2, B5, T, UT, UP, B6, X3, B3, B4, B7, pressao;
+unsigned int conta_tempo =0, tempo_medido =0, contador =0, direcao=0, pwm = 0;
+float freq_anemometro=0, quantidade_chuva=0;
 
 /* USER CODE END PTD */
 
@@ -599,7 +599,7 @@ long le_temp_bmp180(void){
 	B5 = X1 + X2;
 	T = (B5+8)/16;
 	
-	return T;
+	return (int)T/10;
 }	
 
 //--------------------------------------------------- LE PRESSAO SENSOR BMP180	
@@ -632,40 +632,44 @@ long le_press_bmp180(void){
 	envia_1_i2c();
 	stop_i2c();
 	
-	UP = ((dado1 << 16) + (dado2<<8) + dado3)>>8;
-	B6P = B5 - 4000;
-	X1P = (B2*(B6P*B6P/4096))/2048;
-	X2P = AC2*B6P/2048;
-	X3P = X1P + X2;
-	B3P = (((AC1*4+X3P)<<0)+2)/4;
-	X1P = AC3* B6P/8192;
-	X2P = (B1*(B6P*B6P/4096))/65536;
-	X3P = ((X1P + X2P)+2)/4;
-	B4P = AC4 * (unsigned long)(X3P+32768)/32768;
-	B7P = ((unsigned long)UP-B3P)*(50000>>0);
-	if (B7P < 0x80000000) pressao = (B7P*2)/B4P;
-		else pressao = (B7P/B4P)*2;
-	X1P = (pressao/256)*(pressao/256);
-	X1P = (X1P*3038)/65536;
-	X2P = (-7357*pressao)/65536;
-	pressao = pressao + (X1P + X2P + 3791)/16;
+
+	UP = ((dado1 << 16) + (dado2<<8) + dado1)>>8;
+	X1 = (UT - AC6)*AC5/32768;
+	X2 = MC*2048/(X1+MD);
+	B5 = X1 + X2;
+	B6 = B5 - 4000;
+	X1 = (B2*(B6*B6/4096))/2048;
+	X2 = AC2*B6/2048;
+	X3 = X1 + X2;
+	B3 = (((AC1*4+X3))+2)/4;
+//	X1 = AC3* B6/8192;
+//	X2 = (B1*(B6*B6/4096))/65536;
+//	X3 = ((X1 + X2)+2)/4;
+	B4 = AC4 * (unsigned long)(X3+32768)/32768;
+	B7 = ((unsigned long)UP-B3)*(50000);
+	if (B7 < 0x80000000) pressao = (B7*2)/B4;
+		else pressao = (B7/B4)*2;
+	X1 = (pressao/256)*(pressao/256);
+	X1 = (X1*3038)/65536;
+	X2 = (-7357*pressao)/65536;
+	pressao = pressao + (X1 + X2 + 3791)/16;
 	
 	
-	return pressao;
+	return (int)pressao/100;
 }	
 //--------------------------------------------------- CALCULO ALTITUDE
-float altitude(long pressao){
+float altitude(void){
+	int pressao;
 	float altitude=0;
 	float aux1 = 1/5255; 
+	pressao = le_press_bmp180();
 	altitude = 44330 * (1-pow((pressao/1023.25), aux1));
-	return altitude;
+	return (int)altitude;
 }
 
 //--------------------------------------------------- LEITURA DO AD
 uint16_t le_AD(int escolha){
 	uint16_t pot_motor, vento, luminosidade;
-	lcd_GOTO(0,5);
-	lcd_STRING("TESTE1");
 
 //-------------------------------------- leitura vento	
 	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
@@ -677,8 +681,8 @@ uint16_t le_AD(int escolha){
 	HAL_ADC_Stop(&hadc1);
 	
 //-------------------------------------- leitura luminosidade
-	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
-	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,1);
+	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,1);
+	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,0);
 	HAL_Delay(10);
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1,100);
@@ -686,8 +690,8 @@ uint16_t le_AD(int escolha){
 	HAL_ADC_Stop(&hadc1);
 	
 //-------------------------------------- leitura pot motor
-	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,1);
-	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,0);
+	HAL_GPIO_WritePin(GPIOB, MUX_A_Pin,0);
+	HAL_GPIO_WritePin(GPIOB, MUX_B_Pin,1);
 	HAL_Delay(10);
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1,100);
@@ -709,61 +713,76 @@ uint16_t le_AD(int escolha){
 
 //--------------------------------------------------- INTERRUPÇÂO PARA PWM
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	uint16_t leitura_AD = 0;
-	static int contador =0, pwm = 0;
-	leitura_AD = le_AD(3);
-	lcd_GOTO(1,5);
-	lcd_STRING("TESTE2");
+
 	contador ++;
 	conta_tempo ++;
-	if (leitura_AD <= 2035){
-	pwm = (leitura_AD*100)/2035;
-	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
+	if (pwm == 0) HAL_GPIO_WritePin(GPIOB, PWM1_Pin,0);
+	else{
+		if (contador <= pwm)	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
+		else 	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,0);	
+		if (contador >= 100) {
+		contador = 0;
+		HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
+		}
 	}
-	else if (leitura_AD >= 2035){
-	pwm = ((leitura_AD - 2035)*100)/2035;
-	HAL_GPIO_WritePin(GPIOB, RL1_Pin,1);	
-	}
-	
-	if (contador <= pwm)	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
-	else 	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,0);	
-	if (contador >= 100) {
-	contador = 0;
-	HAL_GPIO_WritePin(GPIOB, PWM1_Pin,1);
-	}
-
+		
 }
 
+//--------------------------------------------------- CONTROLE MOTOR
+void controle_motor(void){
+	uint16_t leitura_AD = 0;
+	leitura_AD = le_AD(3);
+
+	if (leitura_AD > 2035-50 && leitura_AD < 2035+50){
+	pwm = 0;
+	direcao = 3;
+	}
+	else{
+	if (leitura_AD <= 2035-50){
+	pwm =((leitura_AD*100)/2035);
+	HAL_GPIO_WritePin(GPIOB, RL1_Pin,1);
+	direcao =1;
+	}
+	
+	if (leitura_AD >= 2035+50){
+	pwm =((leitura_AD - 2035+50)*100)/2035;
+	HAL_GPIO_WritePin(GPIOB, RL1_Pin,0);
+	direcao = 2;
+	}
+}
+}
+
+
 //--------------------------------------------------- LEITURA VENTO
-uint16_t dir_vento (void){
+int dir_vento (void){
 	uint16_t vento;
 	int direcao=0; // N=1, NE=2, E=3, ES=4, S=5, SW=6, W=7, NW=8
 	vento = le_AD(1);
 	
-	if (vento<= 3554+50 && vento>=3554-50) direcao = 1;
-	else if (vento<= 2583+50 && vento>=2583-50) direcao = 2;
-	else if (vento<= 713+50 && vento>=713-50) direcao = 3;
-	else if (vento<= 1291+50 && vento>=1291-50) direcao = 4;
-	else if (vento<= 1845+50 && vento>=1845-50) direcao = 5;
-	else if (vento<= 3136+50 && vento>=3136-50) direcao = 6;
-	else if (vento<= 3911+50 && vento>=3911-50) direcao = 7;
-	else if (vento<= 3788+50 && vento>=3788-50) direcao = 8;
+	if (vento<= 3554+50 && vento>=3554-50) direcao = 0;
+	else if (vento<= 2583+50 && vento>=2583-50) direcao = 45;
+	else if (vento<= 713+50 && vento>=713-50) direcao = 90;
+	else if (vento<= 1291+50 && vento>=1291-50) direcao = 135;
+	else if (vento<= 1845+50 && vento>=1845-50) direcao = 180;
+	else if (vento<= 3136+50 && vento>=3136-50) direcao = 225;
+	else if (vento<= 3911+50 && vento>=3911-50) direcao = 270;
+	else if (vento<= 3788+50 && vento>=3788-50) direcao = 315;
 	else direcao =0;
 	
 	return direcao;
 }
 
 //--------------------------------------------------- LEITURA LUMINOSIDADE
-uint16_t lumi_dia (void){
+int lumi_dia (void){
 	uint16_t luminosidade;
 	int estado_dia=0; // sol=1, parcialmente nublado=2, nublado=3, anoitecer=4, noite=5
 	luminosidade = le_AD(2);
 	
 	if (luminosidade>=4096-50) estado_dia = 1;
-	else if (luminosidade<= 2337+50 && luminosidade>=2337-50) estado_dia = 2;
-	else if (luminosidade<= 61+10 && luminosidade>=61-10) estado_dia = 3;
-	else if (luminosidade<= 8+5 && luminosidade>=8-5) estado_dia = 4;
-	else if (luminosidade<= 50) estado_dia = 5;
+	else if (luminosidade< 4096-50 && luminosidade>=2337) estado_dia = 2;
+	else if (luminosidade< 2337 && luminosidade>=61) estado_dia = 3;
+	else if (luminosidade< 61 && luminosidade>=8) estado_dia = 4;
+	else if (luminosidade< 8) estado_dia = 5;
 	else luminosidade =0;
 	
 	return estado_dia;
@@ -773,18 +792,12 @@ uint16_t lumi_dia (void){
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	static int aux_contador =0, diferenca =0, aux=0;
 	if (GPIO_Pin == GPIO_PIN_12){
-	quantidade_chuva = quantidade_chuva + 0.1;
+	quantidade_chuva = quantidade_chuva + 1;
 	}
+	
 	if (GPIO_Pin == GPIO_PIN_15){
-		if (aux == 0){
-		aux_contador = conta_tempo;
-		aux++;
-		}
-			else if (aux ==1){
-			diferenca = conta_tempo - aux_contador;
-			freq_anemometro = 1/(0.1*diferenca); 
-			aux = 0;
-			}
+		tempo_medido = conta_tempo;
+		conta_tempo = 0;
 	}
 	
 }
@@ -827,7 +840,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	
 		HAL_TIM_Base_Start_IT(&htim1);
-		//le_calib_bmp180();
+		le_calib_bmp180();
 		lcd_init();
 
   /* USER CODE END 2 */
@@ -839,10 +852,59 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//		sprintf(vetor, "T=%ld ", le_AD());
-//		lcd_GOTO(2,0);
-//		lcd_STRING(vetor);
-//		
+
+		controle_motor();	
+		sprintf(vetor, "T:%doC P:%3dPa A:%dm",(int)le_temp_bmp180(), (int)le_press_bmp180(), (int)altitude());
+		lcd_GOTO(0,0);
+		lcd_STRING(vetor);
+		
+		if (direcao == 1){
+		sprintf(vetor, "VM:%d%%D Vento:%do",pwm, dir_vento());
+		lcd_GOTO(1,0);
+		lcd_STRING(vetor);
+		}
+		else if (direcao ==2 ) {
+		sprintf(vetor, "VM:%.2d%%E Vento:%do",(int)pwm, dir_vento());
+		lcd_GOTO(1,0);
+		lcd_STRING(vetor);
+		}
+		else if (direcao ==3 ) {
+		sprintf(vetor, "VM:Parado Vento:%do", dir_vento());
+		lcd_GOTO(1,0);
+		lcd_STRING(vetor);
+		}
+		
+		if (lumi_dia() == 1){
+		sprintf(vetor, "Chuva:%dmm  SOL     ",(int)quantidade_chuva);
+		lcd_GOTO(2,0);
+		lcd_STRING(vetor);
+		}
+		else if (lumi_dia() == 2){
+		sprintf(vetor, "Chuva:%dmm  PAR NUB",(int)quantidade_chuva);
+		lcd_GOTO(2,0);
+		lcd_STRING(vetor);
+		}
+		else if (lumi_dia() == 3){
+		sprintf(vetor, "Chuva:%dmm  NUBLADO    ",(int)quantidade_chuva);
+		lcd_GOTO(2,0);
+		lcd_STRING(vetor);
+		}
+		else if (lumi_dia() == 4){
+		sprintf(vetor, "Chuva:%dmm  ANOITE",(int)quantidade_chuva);
+		lcd_GOTO(2,0);
+		lcd_STRING(vetor);
+		}
+		else if (lumi_dia() == 5){
+		sprintf(vetor, "Chuva:%dmm  NOITE       ",(int)quantidade_chuva);
+		lcd_GOTO(2,0);
+		lcd_STRING(vetor);
+		}
+
+		
+		sprintf(vetor, "Vel Vento:%2dkm/h",(int)(1/(tempo_medido*10000)));
+		lcd_GOTO(3,0);
+		lcd_STRING(vetor);
+		
   }
   /* USER CODE END 3 */
 }
