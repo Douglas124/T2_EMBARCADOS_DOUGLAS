@@ -80,11 +80,13 @@ compiling main.c...
   	static int aux_contador =0, diferenca =0, aux=0;
 ../Src/main.c(794): warning:  #177-D: variable "aux"  was declared but never referenced
   	static int aux_contador =0, diferenca =0, aux=0;
-../Src/main.c: 26 warnings, 0 errors
+../Src/main.c(859): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "uint8_t *"
+  		HAL_UART_Transmit(&huart1, dados_serial, strlen((char*)dados_serial), 500);
+../Src/main.c: 27 warnings, 0 errors
 linking...
-Program Size: Code=15820 RO-data=436 RW-data=116 ZI-data=1212  
+Program Size: Code=16240 RO-data=440 RW-data=116 ZI-data=1212  
 FromELF: creating hex file...
-"T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 26 Warning(s).
+"T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.axf" - 0 Error(s), 27 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -107,7 +109,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Build Time Elapsed:  00:00:04
+Build Time Elapsed:  00:00:05
 </pre>
 </body>
 </html>
