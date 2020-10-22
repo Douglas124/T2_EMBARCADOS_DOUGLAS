@@ -22,6 +22,7 @@
 #include "main.h"
 #include "adc.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -661,9 +662,9 @@ long le_press_bmp180(void){
 float altitude(void){
 	int pressao;
 	float altitude=0;
-	float aux1 = 1/5255; 
+	float aux1 = 1.0/5255.0; 
 	pressao = le_press_bmp180();
-	altitude = 44330 * (1-pow((pressao/1023.25), aux1));
+	altitude = 44330.0 * (1-pow((pressao/1023.25), aux1));
 	return (int)altitude;
 }
 
@@ -837,6 +838,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 	
 		HAL_TIM_Base_Start_IT(&htim1);
@@ -901,7 +903,7 @@ int main(void)
 		}
 
 		
-		sprintf(vetor, "Vel Vento:%2dkm/h",(int)(1/(tempo_medido*10000)));
+		sprintf(vetor, "Vel Vento:%2dkm/h",(int)(1/(tempo_medido*0.0001)));
 		lcd_GOTO(3,0);
 		lcd_STRING(vetor);
 		

@@ -4,6 +4,7 @@
 "t2_embarcados_douglas\gpio.o"
 "t2_embarcados_douglas\adc.o"
 "t2_embarcados_douglas\tim.o"
+"t2_embarcados_douglas\usart.o"
 "t2_embarcados_douglas\stm32f1xx_it.o"
 "t2_embarcados_douglas\stm32f1xx_hal_msp.o"
 "t2_embarcados_douglas\stm32f1xx_hal_gpio_ex.o"
@@ -21,6 +22,7 @@
 "t2_embarcados_douglas\stm32f1xx_hal_exti.o"
 "t2_embarcados_douglas\stm32f1xx_hal_tim.o"
 "t2_embarcados_douglas\stm32f1xx_hal_tim_ex.o"
+"t2_embarcados_douglas\stm32f1xx_hal_uart.o"
 "t2_embarcados_douglas\system_stm32f1xx.o"
 --library_type=microlib --strict --scatter "T2_EMBARCADOS_DOUGLAS\T2_EMBARCADOS_DOUGLAS.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
